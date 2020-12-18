@@ -1,6 +1,6 @@
 Linux Admin Guide
 =================
-** Guide to administering Linux on RHEL, CentOS, Amazon AMI's **
+**Linux Administration on RHEL, CentOS, Amazon AMI's**
 
 ## Table Of Contents
 
