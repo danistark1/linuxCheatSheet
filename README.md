@@ -15,6 +15,7 @@ Linux Admin Guide
 - [Fish](#fish)
 - [GIT](#git)
 - [Hardware](#hardware)
+- [Load-Balancing](#load-balancing)
 - [Memcache](#memcache)
 - [MySQL](#MySQL)
 - [Networking](#Networking)
@@ -2876,6 +2877,73 @@ DROP DATABASE test;
 		SHOW PROCESSLIST; show slow transactions
 		mysqladmin ext -i1 | grep Threads_running
 
+## Load-Balancing 
+						  
+HAProxy is a very fast and reliable solution for high availability, load balancing, It supports TCP and HTTP-based applications. Nowadays maximizing websites up-time is very crucial for heavy traffic websites. This is not possible with single server setup. Then we need some high availability environment that can easily manage with single server failure.
+						  
+						  
+![haproyxdiagram](https://github.com/danistark1/linuxCheatSheet/blob/main/haproxy-setup-diagram.png)
+				
+						  
+**how to setup**
+						  
+	  Web Server Details:
+```
+Server 1:    web1.example.com     192.168.1.101
+Server 2:    web2.example.com     192.168.1.102
+Server 3:    web3.example.com     192.168.1.103
+```
+HAProxy Server: 
+```
+HAProxy:     haproxy              192.168.1.12
+```						  
+**step 1 – Install HAProxy**
+```						  
+sudo add-apt-repository ppa:vbernat/haproxy-1.8
+sudo apt-get update
+sudo apt-get install haproxy
+```						  
+**step 2 – Configure HAProxy Load Balancing**
+```						  
+sudo vi /etc/haproxy/haproxy.cfg
+```						  
+**add a listener**
+```						  
+frontend Local_Server
+    bind 192.168.1.12:80
+    mode http
+    default_backend My_Web_Servers
+```						  
+**add Backend Web Servers:**
+```						  
+backend nodes
+    mode http
+    balance roundrobin
+    option forwardfor
+    http-request set-header X-Forwarded-Port %[dst_port]
+    http-request add-header X-Forwarded-Proto https if { ssl_fc }
+    option httpchk HEAD / HTTP/1.1rnHost:localhost
+    server web1.example.com  192.168.1.101:80
+    server web2.example.com  192.168.1.102:80
+```    server web3.example.com  192.168.1.103:80
+						  
+**Enable Stats (Optional)**
+```						  
+listen stats *:1936
+    stats enable
+    stats hide-version
+    stats refresh 30s
+    stats show-node
+    stats auth username:password
+    stats uri  /stats
+```						  
+**step 4 – Restart HAProxy**
+```						  
+sudo service haproxy restart
+```						  
+**step 5 – Verify HAProxy Setting**
+						  
+Now access port 80 on IP 192.168.1.12 (as configured above) in the web browser and hit refresh. You will see that HAProxy is sending requests to backend servers one by one (as per round-robin algorithm).
 
 ## Memcache
 ----
